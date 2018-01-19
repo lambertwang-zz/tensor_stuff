@@ -9,6 +9,7 @@
 // Library
 #include <iostream>
 #include <vector>
+#include <initializer_list>
 
 class Tensor {
     private:

@@ -1,4 +1,4 @@
-FLAGS = -Wall -Wextra -g
+FLAGS = -Wall -Wextra -g -std=c++17
 
 SRC_LOC = src/
 TEST_LOC = test/

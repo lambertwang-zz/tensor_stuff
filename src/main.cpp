@@ -28,10 +28,10 @@ void expect(Tensor t, std::string e) {
     if (tmp.compare(e)) {
         error_count++;
         std::cout << "\e[1m\e[31mERROR, MISMATCH!\e[0m" << std::endl;
-        std::cout << "Expecting \"\e[1m\e[33m" << t.getAllData() << "\e[0m\"" << std::endl;
-        std::cout << "To Equal  \"\e[1m\e[32m" << e << "\e[0m\"" << std::endl;
+        std::cout << "Expecting \"\e[1m\e[34m" << t.getAllData() << "\e[0m\"" << std::endl;
+        std::cout << "To Equal  \"\e[1m\e[36m" << e << "\e[0m\"" << std::endl;
     } else {
-        std::cout << "Received expected output: \"\e[1m\e[32m" << e << "\e[0m\"" << std::endl;
+        std::cout << "Received expected output: \"\e[1m\e[36m" << e << "\e[0m\"" << std::endl;
     }
 }
 
@@ -142,6 +142,7 @@ int main(int argc, char **argv) {
     expect(sess1.run(loss, placeholder3), "23.66");
 
     std::cout << "\e[35mTesting Gradient Descent Optimizer\e[0m" << std::endl;
+    /*
 
     double learning_rate = 0.01;
     unsigned int iterations = 1000;
@@ -179,6 +180,81 @@ int main(int argc, char **argv) {
     }
     std::cout << "Time Elapsed: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
     expect(sess2.run(train2), "7.13624e-005");
+
+    /*
+    double learning_rate_3 = 0.0015;
+    unsigned int iterations_3 = 10000;
+    std::cout << "Training Gradient descent optimizer on y = a * x^2 + b * x + c." << std::endl;
+    std::cout << "Learning rate: " << learning_rate_3 << ", Iterations: " << iterations_3 << std::endl;
+
+    Placeholder *x_3 = new Placeholder("x");
+    Add *model_3= *(*(*new Variable(3, "a") * *new Square(x_3)) + *(*new Variable(5, "b") * *x_3)) + *new Variable(-90, "c");
+
+    // Add *linear_model = *(*new Placeholder("x") * *new Variable(-1, "w")) + *new Variable(1, "b");
+    Placeholder *y_3 = new Placeholder("y");
+    // expect(sess1.run(*linear_model - *y, placeholder3), "0, 0.3, 0.6, 0.9");
+    Session sess3 = Session();
+    ReduceSum *loss_3 = new ReduceSum(new Square(*model_3 - *y_3));
+
+    GradientDescentOptimizer optimizer_3 = GradientDescentOptimizer(Tensor(learning_rate_3));
+    TensorNode *train_3 = optimizer_3.minimize(loss_3);
+
+    std::map<std::string, Tensor> placeholder_3;
+    placeholder_3["x"] = Tensor({1, 2, 3, 4, 5}, {5});
+    placeholder_3["y"] = Tensor({190, 676, 1436, 2470, 3778}, {5});
+
+    sess3.initialize(train_3);
+    start = std::clock();
+    std::ofstream file_3;
+    file_3.open("loss_function.csv");
+    file_3 << "loss,w,b," << std::endl;
+    for (unsigned int i = 0; i < iterations_3; i++) {
+        Tensor loss = sess3.run(train_3, placeholder_3);
+        /*
+        if (i % 50 == 0) {
+            file_3 << loss.getAllData() << ",";
+            file_3 << sess3.getVar(new Variable(0, "a")).getAllData() << ",";
+            file_3 << sess3.getVar(new Variable(0, "b")).getAllData() << ",";
+            file_3 << sess3.getVar(new Variable(0, "c")).getAllData() << ",";
+            file_3 <<std::endl;
+        }
+        if (i % 1000 == 0) {
+            std::cout << "Iteration " << i << std::endl;
+            std::cout << "loss = " << loss.getAllData() << std::endl;
+            std::cout << "a    = " << sess3.getVar(new Variable(0, "a")).getAllData() << std::endl;
+            std::cout << "b    = " << sess3.getVar(new Variable(0, "b")).getAllData() << std::endl;
+            std::cout << "c    = " << sess3.getVar(new Variable(0, "c")).getAllData() << std::endl;
+        }
+        */
+    /*
+    }
+    file_3.close();
+    std::cout << "Time Elapsed: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+    std::cout << "Final loss = " << sess3.run(train_3, placeholder_3).getAllData() << std::endl;
+    std::cout << "Final a = " << sess3.getVar(new Variable(0, "a")).getAllData() << std::endl;
+    std::cout << "Final b = " << sess3.getVar(new Variable(0, "b")).getAllData() << std::endl;
+    std::cout << "Final c = " << sess3.getVar(new Variable(0, "c")).getAllData() << std::endl;
+    */
+
+    GradientDescentOptimizer optimizer_4 = GradientDescentOptimizer(Tensor(1));
+    Session sess_4 = Session();
+    TensorNode *train_4 = optimizer_4.minimize(
+            // new ReduceSum(
+                new Square(
+                    new Subtract({
+                        new Mult({
+                                new Constant(3), 
+                                new Constant(3)
+                                }), 
+                        new Variable(0, "x")
+                        })
+                    )
+              //   )
+            );
+    for (unsigned int i = 0; i < 1; i++) {
+        sess_4.run(train_4);
+    }
+    expect(sess_4.getVarTag("x"), "9");
 
     printTestResults();
 
