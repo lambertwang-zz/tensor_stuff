@@ -43,6 +43,9 @@ Tensor Mult::evaluate(Session *session) const {
     return output;
 }
 
+/**
+ * TODO: See Add::derivative():
+ */
 Tensor Mult::derivative(const TensorNode *dx, Session *session) const {
     Tensor output;
     bool is_initialized = false;
@@ -61,7 +64,26 @@ Tensor Mult::derivative(const TensorNode *dx, Session *session) const {
     }
 
     if (is_input) {
-        return output;
+        Tensor input_eval = session->getEval(dx);
+        std::vector<unsigned int> d_shape = input_eval.getShape(),
+            output_shape = output.getShape();
+        d_shape.insert(d_shape.end(), 
+            d_shape.begin(), 
+            d_shape.end());
+        d_shape.insert(d_shape.end(), 
+            output_shape.begin(), 
+            output_shape.end());
+
+        Tensor derivative = Tensor(d_shape);
+        derivative.setAllData(0);
+        unsigned int count = input_eval.getDataCount();
+        unsigned int out_count = output.getDataCount();
+        for (unsigned int i = 0; i < count; i++) {
+            for (unsigned int j = 0; j < out_count; j++) {
+                derivative.setData(j + out_count * (i + i * count), output.getData(j));
+            }
+        }
+        return derivative;
     } else {
         return Tensor(0);
     }

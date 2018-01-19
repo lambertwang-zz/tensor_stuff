@@ -43,6 +43,11 @@ class Session {
     Session();
 
     /**
+     * Clears the session stores and initializes the variables.
+     */
+    void initialize(TensorNode *node);
+
+    /**
      * Evaluates the nodes within the session
      */
     Tensor run(TensorNode *node, std::map<std::string, Tensor> placeholder = std::map<std::string, Tensor> ());
@@ -54,11 +59,12 @@ class Session {
 
     Tensor getPrev();
     Tensor getVar(const TensorNode *node);
+    Tensor getVarTag(std::string tag);
     void setVar(std::string tag, Tensor t);
     Tensor getPlaceholder(const TensorNode *node);
     Tensor getEval(const TensorNode *node);
 
-    std::map<std::string, Tensor> *getVarStore();
+    std::map<std::string, Tensor> getVarStore();
 };
 
 #endif

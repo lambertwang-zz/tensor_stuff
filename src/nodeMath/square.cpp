@@ -28,11 +28,26 @@ Tensor Square::evaluate(Session *session) const {
     return Tensor();
 }
 
+/**
+ * TODO: See Add::derivative():
+ */
 Tensor Square::derivative(const TensorNode *dx, Session *session) const {
     (void)dx;
     for (const TensorNode *n: input) {
         if (n->getTag().compare(dx->getTag()) == 0) {
-            return session->getEval(n);
+            Tensor input_eval = session->getEval(n);
+            std::vector<unsigned int> d_shape = input_eval.getShape();
+            d_shape.insert(d_shape.end(), 
+                d_shape.begin(), 
+                d_shape.end());
+
+            Tensor derivative = Tensor(d_shape);
+            derivative.setAllData(0);
+            unsigned int count = input_eval.getDataCount();
+            for (unsigned int i = 0; i < count; i++) {
+                derivative.setData(i + i * count, input_eval.getData(i));
+            }
+            return derivative;
         }
     }
     return Tensor(0);

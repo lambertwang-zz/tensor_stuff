@@ -72,31 +72,29 @@ void GraphNode::computeDerivatives(
     // Check if derivative already exists
     try {
         (*derivatives).at(getTag());
-        std::cout << "Derivative already exists" << std::endl;
         return;
     } catch (const std::out_of_range&) {
         // continue
     }
 
     if (this == root) {
-        std::cout << "Assigning root derivative" << std::endl;
+        // droot/droot = 1
+        // TODO: If root shape is not [], then this is false
         (*derivatives)[getTag()] = Tensor(1);
     } else {
         Tensor derivative;
         bool is_initialized = false;
-        std::cout << "Computing derivative of " << getTag() << std::endl;
         for (auto const& x: (*edgeMap)[getTag()]) {
-            std::cout << "Derivative with respect to " << x.first << std::endl;
+            // x.first is parent tag
+            // x.second is dparent/dthis
             // Check if target parent has derivative calculated
             try {
                 (*derivatives).at(x.first);
             } catch (const std::out_of_range&) {
-                std::cout << "Parent Derivative not computed. Computing now" << std::endl;
                 findNode(x.first)->computeDerivatives(edgeMap, derivatives);
             }
 
-            std::cout << x.second << std::endl;
-            std::cout << (*derivatives)[x.first] << std::endl;
+            // Sum all paths to parent from this node
             if (!is_initialized) {
                 is_initialized = true;
                 derivative = Tensor(x.second * (*derivatives)[x.first]);
@@ -105,14 +103,9 @@ void GraphNode::computeDerivatives(
             }
         }
         (*derivatives)[getTag()] = derivative;
-        std::cout << "Derivative: " << derivative << std::endl;
     }
 
     for (GraphNode *n: children) {
         n->computeDerivatives(edgeMap, derivatives);
     }
-}
-
-Tensor GraphNode::computeDerivative(std::string tag, Session *session, Tensor val) {
-    return Tensor();
 }

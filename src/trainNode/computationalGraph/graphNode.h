@@ -74,7 +74,7 @@ class GraphNode {
      * Computes the derivative of this node with respect to a target
      * Uses reverse mode differentiation
      */
-    Tensor computeDerivative(std::string tag, Session *session, Tensor val = Tensor(0));
+    // Tensor computeDerivative(std::string tag, Session *session, Tensor val = Tensor(0));
 };
 
 #endif

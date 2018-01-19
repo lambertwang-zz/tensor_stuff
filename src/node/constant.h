@@ -18,9 +18,9 @@ class Constant: public TensorNode {
      * Constructor for a Constant
      */
     Constant();
-    Constant(const float val);
-    Constant(const std::vector<float> data, const std::vector<int> shape);
-    Constant(const std::initializer_list<float>& data, const std::initializer_list<int>& shape);
+    Constant(const double val);
+    Constant(const std::vector<double> data, const std::vector<unsigned int> shape);
+    Constant(const std::initializer_list<double>& data, const std::initializer_list<unsigned int>& shape);
 
     Tensor evaluate() const;
     Tensor evaluate(Session *session) const;

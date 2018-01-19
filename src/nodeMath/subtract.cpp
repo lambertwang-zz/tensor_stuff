@@ -43,6 +43,9 @@ Tensor Subtract::evaluate(Session *session) const {
     return output;
 }
 
+/**
+ * TODO: See Add::derivative():
+ */
 Tensor Subtract::derivative(const TensorNode *dx, Session *session) const {
     (void)session;
     if (input.size() == 0) {
@@ -50,11 +53,35 @@ Tensor Subtract::derivative(const TensorNode *dx, Session *session) const {
     }
     // If input is the target, return 1
     if (input[0]->getTag().compare(dx->getTag()) == 0) {
-        return Tensor(1);
+        Tensor input_eval = session->getEval(input[0]);
+        std::vector<unsigned int> d_shape = input_eval.getShape();
+        d_shape.insert(d_shape.end(), 
+            d_shape.begin(), 
+            d_shape.end());
+
+        Tensor derivative = Tensor(d_shape);
+        derivative.setAllData(0);
+        unsigned int count = input_eval.getDataCount();
+        for (unsigned int i = 0; i < count; i++) {
+            derivative.setData(i + i * count, 1);
+        }
+        return derivative;
     }
     for (const TensorNode *n: input) {
         if (n->getTag().compare(dx->getTag()) == 0) {
-            return Tensor(-1);
+            Tensor input_eval = session->getEval(n);
+            std::vector<unsigned int> d_shape = input_eval.getShape();
+            d_shape.insert(d_shape.end(), 
+                d_shape.begin(), 
+                d_shape.end());
+
+            Tensor derivative = Tensor(d_shape);
+            derivative.setAllData(0);
+            unsigned int count = input_eval.getDataCount();
+            for (unsigned int i = 0; i < count; i++) {
+                derivative.setData(i + i * count, -1);
+            }
+            return derivative;
         }
     }
     return Tensor(0);

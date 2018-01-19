@@ -32,7 +32,16 @@ Tensor ReduceSum::derivative(const TensorNode *dx, Session *session) const {
     (void)session;
     for (const TensorNode *n: input) {
         if (n->getTag().compare(dx->getTag()) == 0) {
-            return Tensor(1);
+            std::vector<unsigned int> input_shape = session->getEval(n).getShape(),
+                d_shape = {1};
+            d_shape.insert(d_shape.end(), 
+                input_shape.begin(), 
+                input_shape.end());
+
+            Tensor derivative = Tensor(d_shape);
+            derivative.setAllData(1);
+
+            return derivative;
         }
     }
     return Tensor(0);

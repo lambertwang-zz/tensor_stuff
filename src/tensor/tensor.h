@@ -15,7 +15,7 @@ class Tensor {
     /**
      * The values stored in the tensor
      */
-    std::vector<float> data;
+    std::vector<double> data;
 
     /**
      * A tensor's rank is its number of dimensions.
@@ -25,7 +25,7 @@ class Tensor {
     /**
      * A tensor's shape is an array containing the size of each of it's dimensions.
      */
-    std::vector<int> shape;
+    std::vector<unsigned int> shape;
 
     unsigned int data_count;
 
@@ -37,10 +37,11 @@ class Tensor {
     /**
      * Constructor for a rank 0 Tensor.
      */
-    Tensor(const float n_data);
-    Tensor(std::vector<int> n_shape);
-    Tensor(const std::vector<float> n_data, std::vector<int> n_shape);
-    Tensor(const std::initializer_list<float>& n_data, const std::initializer_list<int>& n_shape);
+    Tensor(const double n_data);
+    Tensor(std::vector<unsigned int> n_shape);
+    Tensor(const std::initializer_list<unsigned int>& n_shape);
+    Tensor(const std::vector<double> n_data, std::vector<unsigned int> n_shape);
+    Tensor(const std::initializer_list<double>& n_data, const std::initializer_list<unsigned int>& n_shape);
     Tensor(const Tensor &t);
 
     /**
@@ -55,12 +56,14 @@ class Tensor {
     bool compareShape(const Tensor other) const;
 
     unsigned int getRank() const;
-    std::vector<int> getShape() const;
+    std::vector<unsigned int> getShape() const;
 
-    float getData(unsigned int index) const;
-    std::vector<float> getAllData() const;
+    double getData(unsigned int index) const;
+    void setData(unsigned int index, double val);
+    std::vector<double> getAllData() const;
+    void setAllData(double val);
 
-    void setAllData(float val);
+    unsigned int getDataCount() const;
 
     /**
      * Copies data from another tensor with an identical shape.
@@ -69,7 +72,7 @@ class Tensor {
     /**
      * Accessor operator overload
      */
-    float& operator[](size_t i);
+    double& operator[](size_t i);
 
     /**
      * Mathematics operations
@@ -83,7 +86,7 @@ class Tensor {
     /**
      * Returns a tensor of with the values clamped between some min and maximum;
      */
-    Tensor clamp(float min = 0.0, float max = 1.0) const;
+    Tensor clamp(double min = 0.0, double max = 1.0) const;
     /**
      * Vector dot product of two rank 1 tensors with identical shapes
      */
@@ -104,6 +107,7 @@ class Tensor {
     Tensor& operator+=(const Tensor& rhs);
     Tensor& operator-=(const Tensor& rhs);
     Tensor& operator*=(const Tensor& rhs);
+    Tensor& operator/=(const Tensor& rhs);
 
     int streamTensorValues(std::ostream& out, unsigned int rank, unsigned int index) const;
 };
@@ -115,6 +119,7 @@ class Tensor {
 Tensor& operator+(const Tensor& lhs, const Tensor& rhs);
 Tensor& operator-(const Tensor& lhs, const Tensor& rhs);
 Tensor& operator*(const Tensor& lhs, const Tensor& rhs);
+Tensor& operator/(const Tensor& lhs, const Tensor& rhs);
 
 std::ostream& operator<<(std::ostream& out, const Tensor& data);
 

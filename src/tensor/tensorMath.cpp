@@ -14,7 +14,7 @@ Tensor Tensor::square() const {
     return output;
 }
 
-Tensor Tensor::clamp(float min, float max) const {
+Tensor Tensor::clamp(double min, double max) const {
     Tensor output = Tensor(*this);
     for (unsigned int i = 0; i < data_count; i++) {
         output.data[i] = std::min(max, std::max(output.data[i], min));
@@ -43,8 +43,8 @@ Tensor Tensor::product(const Tensor& lhs, const Tensor& rhs) {
 }
 
 Tensor Tensor::reduceSum() const {
-    float val = 0;
-    for (float d: this->data) {
+    Tensor val = Tensor(std::vector<unsigned int>(shape.begin() + 1, shape.end()));
+    for (double d: this->data) {
         val += d;
     }
     return Tensor(val);
@@ -67,10 +67,8 @@ Tensor& Tensor::operator+=(const Tensor& rhs) {
     // If lhs is scalar
     if (rank == 0) {
         if (data_count == 1) {
-            float scalar = data[0];
-            copyFrom(rhs);
-            for (unsigned int i = 0; i < data_count; i++) {
-                data[i] += scalar;
+            for (unsigned int i = 0; i < rhs.data_count; i++) {
+                data[0] += rhs.data[i];
             }
             return *this;
         }
@@ -89,6 +87,9 @@ Tensor& Tensor::operator+=(const Tensor& rhs) {
     return *this;
 }
 
+/**
+ * Partial piecewise mathematics operations.
+ */
 Tensor& Tensor::operator-=(const Tensor& rhs) {
     if (rhs.data_count != 1 && !compareShape(rhs)) {
         throw std::invalid_argument("Tensor::operator-=(): Operands have different shapes.");
@@ -119,31 +120,51 @@ Tensor& Tensor::operator-=(const Tensor& rhs) {
  * 
  * [2] * [[1, 2, 3]] = [[2, 4, 6]] (not supported)
  * [2] * [[1], [2]] = error (not supported)
+ * 
+ * TODO: Improve performance
  */
 Tensor& Tensor::operator*=(const Tensor& rhs) {
-    // Scalar multiplication
-    // If lhs is scalar
-    if (rank == 0) {
-        if (data_count == 1) {
-            float scalar = data[0];
-            copyFrom(rhs);
-            for (unsigned int i = 0; i < data_count; i++) {
-                data[i] *= scalar;
-            }
-            return *this;
-        }
+    // Check if lhs and rhs are scalars, do simple Scalar multiplication
+    if (rank == 0 &&
+        data_count == 1 &&
+        compareShape(rhs)) {
+        data[0] *= rhs.data[0];
+        return *this;
     }
 
-    // If rhs is scalar
-    if (rhs.rank == 0) {
-        if (rhs.data_count == 1) {
-            for (unsigned int i = 0; i < data_count; i++) {
-                data[i] *= rhs.data[0];
+    // Check if sizes are correct for multiplication
+    unsigned int lhs_x = rank >= 1 ? shape[0] : 1,
+        lhs_y = rank == 2 ? shape[1] : 1,
+        rhs_x = rhs.rank >= 1 ? rhs.shape[0] : 1,
+        rhs_y = rhs.rank == 2 ? rhs.shape[1] : 1;
+
+    // Shape is correct, do matrix multiplication
+    if (lhs_x == rhs_y) {
+        Tensor result;
+        if (lhs_y == 1) {
+            if (rhs_x == 1) {
+                result = Tensor(0);
+            } else {
+                result = Tensor({rhs_x});
             }
-            return *this;
+        } else {
+            result = Tensor({rhs_x, lhs_y});
         }
+        for (unsigned int i = 0; i < rhs_x; i++) {
+            for (unsigned int j = 0; j < lhs_y; j++) {
+                result.data[j + i * lhs_y] = 0.0;
+                for (unsigned int k = 0; k < rhs_y; k++) {
+                    result.data[j + i * lhs_y] += 
+                        data[j + k * lhs_y] *
+                        rhs.data[k + i * rhs_y];
+                }
+            }
+        }
+        copyFrom(result);
+        return *this;
     }
 
+    // Otherwise, do element-wise multiplication
     if (!compareShape(rhs)) {
         throw std::invalid_argument("Tensor::operator*=(): Operands have different shapes.");
     }
@@ -154,9 +175,30 @@ Tensor& Tensor::operator*=(const Tensor& rhs) {
     return *this;
 }
 
+Tensor& Tensor::operator/=(const Tensor& rhs) {
+    // If rhs is scalar
+    if (rhs.rank == 0) {
+        if (rhs.data_count == 1) {
+            for (unsigned int i = 0; i < data_count; i++) {
+                data[i] /= rhs.data[0];
+            }
+            return *this;
+        }
+    }
+
+    if (!compareShape(rhs)) {
+        throw std::invalid_argument("Tensor::operator/=(): Operands have different shapes.");
+    }
+
+    for (unsigned int i = 0; i < data_count; i++) {
+        data[i] /= rhs.data[i];
+    }
+    return *this;
+}
+
 Tensor& operator+(const Tensor& lhs, const Tensor& rhs) {
     static Tensor output;
-    output  = Tensor(lhs);
+    output = Tensor(lhs);
     output += rhs;
     return output;
 }
@@ -172,5 +214,12 @@ Tensor& operator*(const Tensor& lhs, const Tensor& rhs) {
     static Tensor output;
     output = Tensor(lhs);
     output *= rhs;
+    return output;
+}
+
+Tensor& operator/(const Tensor& lhs, const Tensor& rhs) {
+    static Tensor output;
+    output = Tensor(lhs);
+    output /= rhs;
     return output;
 }

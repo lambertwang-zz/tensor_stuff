@@ -17,9 +17,9 @@ class Variable: public TensorNode {
     /**
      * Constructor for a Variable
      */
-    Variable(const float init = 0, std::string n_tag = "");
-    Variable(const std::vector<float> data, const std::vector<int> shape, std::string n_tag = "");
-    Variable(const std::initializer_list<float>& data, const std::initializer_list<int>& shape, std::string n_tag = "");
+    Variable(const double init = 0, std::string n_tag = "");
+    Variable(const std::vector<double> data, const std::vector<unsigned int> shape, std::string n_tag = "");
+    Variable(const std::initializer_list<double>& data, const std::initializer_list<unsigned int>& shape, std::string n_tag = "");
 
     Tensor evaluate() const;
     Tensor evaluate(Session *session) const;

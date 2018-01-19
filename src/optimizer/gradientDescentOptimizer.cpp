@@ -24,5 +24,5 @@ Tensor GradientDescentOptimizer::evaluate(Session *session) const {
 }
 
 TensorNode *GradientDescentOptimizer::minimize(TensorNode *target) {
-    return new Train(this, target);
+    return new Train(this, target, learning_rate);
 }

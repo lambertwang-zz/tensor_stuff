@@ -13,17 +13,17 @@ Constant::Constant() {
     constant = Tensor();
 }
 
-Constant::Constant(const float val) {
+Constant::Constant(const double val) {
     createTag();
     constant = Tensor(val);
 }
 
-Constant::Constant(const std::vector<float> data, const std::vector<int> shape) {
+Constant::Constant(const std::vector<double> data, const std::vector<unsigned int> shape) {
     createTag();
     constant = Tensor(data, shape);
 }
 
-Constant::Constant(const std::initializer_list<float>& data, const std::initializer_list<int>& shape) {
+Constant::Constant(const std::initializer_list<double>& data, const std::initializer_list<unsigned int>& shape) {
     createTag();
     constant = Tensor(data, shape);
 }

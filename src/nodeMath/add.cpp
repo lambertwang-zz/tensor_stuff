@@ -43,11 +43,30 @@ Tensor Add::evaluate(Session *session) const {
     return output;
 }
 
+/**
+ * TODO: Test and fix this function. Create general function
+ * for re-use between other mathematics nodes.
+ */
 Tensor Add::derivative(const TensorNode *dx, Session *session) const {
     (void)session;
     for (const TensorNode *n: input) {
         if (n->getTag().compare(dx->getTag()) == 0) {
-            return Tensor(1);
+            Tensor input_eval = session->getEval(this),
+                dx_eval = session->getEval(n);
+            std::vector<unsigned int> d_shape = input_eval.getShape(),
+                dx_shape = dx_eval.getShape();
+            d_shape.insert(d_shape.end(), 
+                dx_shape.begin(), 
+                dx_shape.end());
+
+            Tensor derivative = Tensor(d_shape);
+            derivative.setAllData(0);
+            unsigned int in_count = input_eval.getDataCount();
+            unsigned int dx_count = dx_eval.getDataCount();
+            for (unsigned int i = 0; i < in_count; i++) {
+                derivative.setData((i % dx_count) + i * dx_count, 1);
+            }
+            return derivative;
         }
     }
     return Tensor(0);

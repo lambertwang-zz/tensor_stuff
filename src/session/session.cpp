@@ -7,34 +7,43 @@ Session::Session() {
     placeholder_store = NULL;
 }
 
-Tensor Session::run(TensorNode *node, std::map<std::string, Tensor> placeholder) {
+void Session::initialize(TensorNode *node) {
+    // std::cout << "Initializing session" << std::endl;
+    is_initialized = true;
+    variable_store.clear();
+
     // Initializes the session by adding all of the variables to the variable store
-    if (!is_initialized) {
-        // Initializes the nodes using a depth-first search on the node inputs
-        std::list<std::string> initialized;
-        std::list<const TensorNode *> queue;
+    // Initializes the nodes using a depth-first search on the node inputs
+    std::list<std::string> initialized;
+    std::list<const TensorNode *> queue;
 
-        // Add initial element to queue
-        queue.push_back(node);
-        initialized.push_back(node->getTag());
+    // Add initial element to queue
+    queue.push_back(node);
+    initialized.push_back(node->getTag());
 
-        while (!queue.empty()) {
-            // get and delete last element (depth-first)
-            const TensorNode *current = queue.back();
-            queue.pop_back();
+    while (!queue.empty()) {
+        // get and delete last element (depth-first)
+        const TensorNode *current = queue.back();
+        queue.pop_back();
 
-            current->initialize(this);
+        current->initialize(this);
+        // std::cout << "Initializing node with tag " << current->getTag() << std::endl;
 
-            for (const TensorNode *n: current->getInput()) {
-                // Check if element was not already added to queue
-                if (std::find(initialized.begin(), initialized.end(), n->getTag()) == initialized.end()) {
-                    queue.push_back(n);
-                    initialized.push_back(n->getTag());
-                }
+        for (const TensorNode *n: current->getInput()) {
+            // Check if element was not already added to queue
+            if (std::find(initialized.begin(), initialized.end(), n->getTag()) == initialized.end()) {
+                queue.push_back(n);
+                initialized.push_back(n->getTag());
             }
         }
+    }
 
-        run_count = 0;
+    run_count = 0;
+}
+
+Tensor Session::run(TensorNode *node, std::map<std::string, Tensor> placeholder) {
+    if (!is_initialized) {
+        initialize(node);
     }
 
     // Evaluate root node
@@ -62,6 +71,15 @@ Tensor Session::getVar(const TensorNode *node) {
         return output;
     } catch (const std::out_of_range&) {
         throw std::out_of_range("Session::getVar(): Variable with tag " + node->getTag() + " not initialized.");
+    }
+}
+
+Tensor Session::getVarTag(std::string tag) {
+    try {
+        Tensor output = variable_store.at(tag);
+        return output;
+    } catch (const std::out_of_range&) {
+        throw std::out_of_range("Session::getVar(): Variable with tag " + tag + " not initialized.");
     }
 }
 
@@ -96,6 +114,6 @@ Tensor Session::getEval(const TensorNode *node) {
     }
 }
 
-std::map<std::string, Tensor> *Session::getVarStore() {
-    return &variable_store;
+std::map<std::string, Tensor> Session::getVarStore() {
+    return variable_store;
 }

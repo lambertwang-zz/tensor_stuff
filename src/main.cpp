@@ -4,9 +4,12 @@
 
 // Library
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
-std::ostream& operator<<(std::ostream& out, const std::vector<float>& data) {
+#include <ctime>
+
+std::ostream& operator<<(std::ostream& out, const std::vector<double>& data) {
     if (data.size() > 0) {
         out << data[0];
     } for (unsigned int i = 1; i < data.size(); i++) {
@@ -63,13 +66,13 @@ int main(int argc, char **argv) {
     Constant node3 = Constant(5);
     expect(node3.evaluate(), "5");
 
-    std::vector<float> node4_data = {1.5, 2.5, 3.5, 4.5};
-    std::vector<int> node4_shape = {4};
+    std::vector<double> node4_data = {1.5, 2.5, 3.5, 4.5};
+    std::vector<unsigned int> node4_shape = {4};
     Constant node4 = Constant(node4_data, node4_shape);
     expect(node4.evaluate(), "1.5, 2.5, 3.5, 4.5");
 
-    std::vector<float> node5_data = {1, 2, 3, 4, 5, 6};
-    std::vector<int> node5_shape = {2, 1, 3};
+    std::vector<double> node5_data = {1, 2, 3, 4, 5, 6};
+    std::vector<unsigned int> node5_shape = {2, 1, 3};
     Constant node5 = Constant(node5_data, node5_shape);
     expect(node5.evaluate(), "1, 2, 3, 4, 5, 6");
 
@@ -102,6 +105,10 @@ int main(int argc, char **argv) {
 
     expect(ReduceSum(&node4).evaluate(), "12");
 
+    std::cout << "\e[35mTesting matrix multiplications\e[0m" << std::endl;
+    expect(Tensor({1, 3, 5, 7}, {2, 2}) * Tensor({2, 4, 6, 8}, {2, 2}), "22, 34, 46, 74");
+    expect(Tensor({4, 5, 6, 7, 8, 9, 10, 11, 12}, {3, 3}) * Tensor({1, 2, 3}, {1, 3}), "48, 54, 60");
+
     std::cout << "\e[35mTesting sessions\e[0m" << std::endl;
 
     Session sess1 = Session();
@@ -123,19 +130,55 @@ int main(int argc, char **argv) {
     placeholder3["x"] = Tensor({1, 2, 3, 4}, {4});
     placeholder3["y"] = Tensor({0, -1, -2, -3}, {4});
 
-    Add *linear_model = *(*new Placeholder("x") * *new Variable(0.3, "w")) + *new Variable(-0.3, "b");
+    Add *linear_model = *(*new Variable(0.3, "w") * *new Placeholder("x")) + *new Variable(-0.3, "b");
+    sess1.initialize(linear_model);
+    expect(sess1.run(linear_model, placeholder3), "0, 0.3, 0.6, 0.9");
     // Add *linear_model = *(*new Placeholder("x") * *new Variable(-1, "w")) + *new Variable(1, "b");
     Placeholder *y = new Placeholder("y");
+    // expect(sess1.run(*linear_model - *y, placeholder3), "0, 0.3, 0.6, 0.9");
     ReduceSum *loss = new ReduceSum(new Square(*linear_model - *y));
 
+    sess1.initialize(loss);
     expect(sess1.run(loss, placeholder3), "23.66");
 
     std::cout << "\e[35mTesting Gradient Descent Optimizer\e[0m" << std::endl;
 
-    GradientDescentOptimizer optimizer = GradientDescentOptimizer(Tensor(0.01));
+    double learning_rate = 0.01;
+    unsigned int iterations = 1000;
+    std::cout << "Training Gradient descent optimizer on y = w * x + b." << std::endl;
+    std::cout << "y = -1 * x + 1." << std::endl;
+    std::cout << "Initial values: w = 0.3, b = -0.3" << std::endl;
+    std::cout << "Learning rate: " << learning_rate << ", Iterations: " << iterations << std::endl;
+    GradientDescentOptimizer optimizer = GradientDescentOptimizer(Tensor(learning_rate));
     TensorNode *train = optimizer.minimize(loss);
-    expect(sess1.run(train, placeholder3), "23.66");
-    expect(sess1.run(train, placeholder3), "23.66");
+    sess1.initialize(train);
+    std::clock_t start;
+    start = std::clock();
+    std::ofstream file;
+    file.open("loss_function.csv");
+    file << "loss,w,b," << std::endl;
+    for (unsigned int i = 0; i < iterations; i++) {
+        Tensor loss = sess1.run(train, placeholder3);
+        file << loss.getAllData() << ",";
+        file << sess1.getVar(new Variable(0, "w")).getAllData() << ",";
+        file << sess1.getVar(new Variable(0, "b")).getAllData() << ",";
+        file <<std::endl;
+    }
+    file.close();
+    std::cout << "Time Elapsed: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+    std::cout << "Final loss = " << sess1.run(train, placeholder3).getAllData() << std::endl;
+    std::cout << "Final w = " << sess1.getVar(new Variable(0, "w")).getAllData() << std::endl;
+    std::cout << "Final b = " << sess1.getVar(new Variable(0, "b")).getAllData() << std::endl;
+
+    GradientDescentOptimizer optimizer2 = GradientDescentOptimizer(Tensor(0.01));
+    Session sess2 = Session();
+    TensorNode *train2 = optimizer2.minimize(new Add({new Mult({new Constant(2), new Variable(5, "x")}), new Variable(-5, "b")}));
+    start = std::clock();
+    for (unsigned int i = 0; i < 100; i++) {
+        sess2.run(train2);
+    }
+    std::cout << "Time Elapsed: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+    expect(sess2.run(train2), "7.13624e-005");
 
     printTestResults();
 
