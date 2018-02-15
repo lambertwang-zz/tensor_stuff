@@ -1,6 +1,6 @@
 #include "session/session.h"
 #include "optimizer/gradientDescentOptimizer.h"
-#include "../test/lib/testlib.h"
+#include "lib/testlib.h"
 
 // Library
 #include <iostream>
@@ -35,16 +35,15 @@ int main() {
 
     // ReduceSum *loss = new ReduceSum(new Square(*y_ - *y));
     // ReduceMean *loss = new ReduceMean(new ReduceSum(*(*y_ * *(new TensorLog(y))) * *(new Constant(-1))));
-    Mult *loss = *(new DotProduct({y_, new TensorLog(y)})) * *(new Constant(-1));
+    Mult *loss = *(*y_ * *(new TensorLog(y))) * *(new Constant(-1));
 
     std::map<std::string, Tensor> placeholders;
     placeholders["x"] = x_data;
     placeholders["y"] = y_data;
 
     Session session = Session();
-    std::cout << "Linear Model: " << session.run(new MatMult(x, w), placeholders) << std::endl;
-    // std::cout << "Linear Model: " << session.run(y, placeholders) << std::endl;
-    // std::cout << "Loss function: " << session.run(loss, placeholders) << std::endl;
+    std::cout << "Linear Model: " << session.run(y, placeholders) << std::endl;
+    std::cout << "Loss function: " << session.run(loss, placeholders) << std::endl;
     /*
     sess1.initialize(linear_model);
     expect(sess1.run(linear_model, placeholder3), "0, 0.3, 0.6, 0.9");

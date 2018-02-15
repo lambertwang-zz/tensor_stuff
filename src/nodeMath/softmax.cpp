@@ -1,38 +1,34 @@
 /**
- * Square class
+ * SoftMax class
  */
 
-#include "square.h"
+#include "softmax.h"
 
-std::string Square::getDefaultTag() {
-    return "square_";
+std::string SoftMax::getDefaultTag() {
+    return "softmax_";
 }
 
-Square::Square(const TensorNode *val) {
+SoftMax::SoftMax(const TensorNode *val) {
     createTag();
     input.push_back(val);
 }
 
-Tensor Square::evaluate() const {
+Tensor SoftMax::evaluate() const {
     for (const TensorNode *n: input) {
-        return n->evaluate().square();
+        return n->evaluate().softMax();
     }
 
     return Tensor();
 }
 
-Tensor Square::evaluate(Session *session) const {
+Tensor SoftMax::evaluate(Session *session) const {
     for (const TensorNode *n: input) {
-        return session->getEval(n).square();
+        return session->getEval(n).softMax();
     }
     return Tensor();
 }
 
-/**
- * TODO: See Add::derivative():
- * d(x^2)/dx = 2x
- */
-Tensor Square::derivative(const TensorNode *dx, Session *session) const {
+Tensor SoftMax::derivative(const TensorNode *dx, Session *session) const {
     (void)dx;
     for (const TensorNode *n: input) {
         if (n->getTag().compare(dx->getTag()) == 0) {
@@ -46,6 +42,7 @@ Tensor Square::derivative(const TensorNode *dx, Session *session) const {
             derivative.setAllData(0);
             unsigned int count = input_eval.getDataCount();
             for (unsigned int i = 0; i < count; i++) {
+                // TODO: Implement this
                 derivative.setData(i + i * count, input_eval.getData(i) * 2);
             }
             return derivative;

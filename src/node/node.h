@@ -13,10 +13,15 @@
 #include "variable.h"
 
 #include "nodeMath/add.h"
+#include "nodeMath/dotproduct.h"
+#include "nodeMath/matmult.h"
 #include "nodeMath/mult.h"
+#include "nodeMath/softmax.h"
 #include "nodeMath/square.h"
 #include "nodeMath/subtract.h"
+#include "nodeMath/tensorlog.h"
 
 #include "nodeReduce/reduceSum.h"
+#include "nodeReduce/reduceMean.h"
 
 #endif

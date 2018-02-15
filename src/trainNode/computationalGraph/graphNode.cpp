@@ -18,8 +18,11 @@ GraphNode::GraphNode(const TensorNode *n_node, GraphNode *n_root) {
 
     // Construct the rest of the nodes in the graph 
     for (const TensorNode *n: node->getInput()) {
-        if (findNode(n->getTag()) == NULL) {
+        GraphNode *graph_node = findNode(n->getTag());
+        if (graph_node == NULL) {
             children.push_back(new GraphNode(n, root));
+        } else {
+            children.push_back(graph_node);
         }
     }
 }
@@ -60,7 +63,12 @@ void GraphNode::computeEdges(
     std::map<std::string, std::map<std::string, Tensor>> *edgeMap) {
 
     for (GraphNode *n: children) {
-        (*edgeMap)[n->getTag()][getTag()] = node->derivative(n->node, session);
+        Tensor derivative =node->derivative(n->node, session);
+        (*edgeMap)[n->getTag()][getTag()] = derivative;
+#ifdef DEBUG
+        std::cout << "Computing derivative of '" << getTag() << "'" << "with respect to node '" << n->getTag() << "'" << std::endl;
+        std::cout << "Derivative: " << derivative << std::endl;
+#endif
         n->computeEdges(session, edgeMap);
     }
 }
@@ -76,6 +84,7 @@ void GraphNode::computeDerivatives(
     } catch (const std::out_of_range&) {
         // continue
     }
+
 
     if (this == root) {
         // droot/droot = 1
@@ -97,12 +106,16 @@ void GraphNode::computeDerivatives(
             // Sum all paths to parent from this node
             if (!is_initialized) {
                 is_initialized = true;
-                derivative = Tensor(x.second * (*derivatives)[x.first]);
+                derivative = Tensor((*derivatives)[x.first] * x.second);
             } else {
-                derivative += x.second * (*derivatives)[x.first];
+                derivative += (*derivatives)[x.first] * x.second;
             }
         }
         (*derivatives)[getTag()] = derivative;
+#ifdef DEBUG
+        std::cout << "Computing derivative of root with respect to node '" << getTag() << "'" << std::endl;
+        std::cout << "Derivative: " << derivative << std::endl;
+#endif
     }
 
     for (GraphNode *n: children) {

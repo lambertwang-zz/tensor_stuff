@@ -1,6 +1,6 @@
 #include "session/session.h"
 #include "optimizer/gradientDescentOptimizer.h"
-#include "../test/lib/testlib.h"
+#include "lib/testlib.h"
 
 // Library
 #include <iostream>
@@ -8,43 +8,31 @@
 
 #include <ctime>
 
+#define TRAINING_COUNT 3
+
 int main() {
-    unsigned int item_count = 5;
-    unsigned int image_size = 4;
-    unsigned int classes = 3;
-    Tensor x_data = Tensor({
-        3, 2, 0, 0,
-        0, 4, 9, 0,
-        0, 10, 0, 3,
-        0, 3, 6, 0,
-        0, 5, 0, 2,
-    }, {item_count, image_size});
-    Tensor y_data = Tensor({
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1,
-        0, 1, 0,
-        0, 0, 1,
-    }, {item_count, classes});
+    unsigned int img_size;
+
+    Tensor x_data = readMnistImages(TRAINING_COUNT, &img_size);
+    Tensor y_data = readMnistLabels(TRAINING_COUNT);
 
     Placeholder *x = new Placeholder("x");
     Placeholder *y_ = new Placeholder("y");
-    Variable *w = new Variable({image_size, classes});
-    Variable *b = new Variable({classes});
+    Variable *w = new Variable({img_size, 10});
+    Variable *b = new Variable({10});
     SoftMax *y = new SoftMax(*(new MatMult(x, w)) + *b);
 
     // ReduceSum *loss = new ReduceSum(new Square(*y_ - *y));
-    // ReduceMean *loss = new ReduceMean(new ReduceSum(*(*y_ * *(new TensorLog(y))) * *(new Constant(-1))));
-    Mult *loss = *(new DotProduct({y_, new TensorLog(y)})) * *(new Constant(-1));
+    ReduceMean *loss = new ReduceMean(new ReduceSum(*(*y_ * *(new TensorLog(y))) * *(new Constant(-1))));
 
     std::map<std::string, Tensor> placeholders;
     placeholders["x"] = x_data;
     placeholders["y"] = y_data;
 
     Session session = Session();
-    std::cout << "Linear Model: " << session.run(new MatMult(x, w), placeholders) << std::endl;
-    // std::cout << "Linear Model: " << session.run(y, placeholders) << std::endl;
-    // std::cout << "Loss function: " << session.run(loss, placeholders) << std::endl;
+    // expect(session.run(y, placeholders), "105");
+    // std::cout << session.run(y, placeholders) << std::endl;
+    // std::cout << session.run(loss, placeholders) << std::endl;
     /*
     sess1.initialize(linear_model);
     expect(sess1.run(linear_model, placeholder3), "0, 0.3, 0.6, 0.9");

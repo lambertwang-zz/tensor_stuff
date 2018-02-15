@@ -16,6 +16,7 @@ EXT = .cpp
 CLEAR = clear
 RM = rm -rf
 SRC = $(shell find src -name '*$(EXT)' ! -name '*$(MAIN_NAME)$(EXT)')
+TEST = $(shell find test -name '*Test$(EXT)' ! -name '*$(MAIN_NAME)$(EXT)')
 RM_OUT = 
 ifeq ($(OS),Windows_NT)
 # CLEAR = cls
@@ -28,14 +29,17 @@ CLEAR = clear
 RM = rm -rf
 RM_OUT = 
 SRC = $(shell find src -name '*$(EXT)' ! -name '*$(MAIN_NAME)$(EXT)')
+TEST = $(shell find test -name '*Test$(EXT)' ! -name '*$(MAIN_NAME)$(EXT)')
 EXECUTABLE = $(EXE_NAME)
 endif
 
 SRC_OBJ = $(SRC:$(EXT)=.o)
+TEST_OBJ = test/lib/testlib.o
 
 TEST_EXE = $(TEST:$(EXT)=)
 
 all: clear clean_exe $(MAIN_NAME)
+	echo $(TEST_EXE)
 
 $(MAIN_NAME): $(SRC_OBJ)
 	$(CC) $(SRC_LOC)$(MAIN_NAME)$(EXT) -o $(EXECUTABLE) $(SRC_OBJ) $(LINK)
@@ -43,12 +47,17 @@ $(MAIN_NAME): $(SRC_OBJ)
 $(EXT).o:
 	$(CC) -c $< -o $@
 
+test: $(SRC_OBJ) $(TEST_EXE)
+
+$(TEST_EXE): $(TEST_OBJ)
+	$(CC) $@$(EXT) -o $@ $(SRC_OBJ) $(TEST_OBJ) $(LINK)
+
 clear:
 	$(CLEAR)
 
 clean_exe:
-	$(RM) $(EXECUTABLE) $(RM_OUT)
+	$(RM) $(EXECUTABLE) $(TEST_EXE) $(RM_OUT)
 
 clean:
-	$(RM) $(EXECUTABLE) $(SRC_OBJ) $(RM_OUT)
+	$(RM) $(EXECUTABLE) $(TEST_EXE) $(SRC_OBJ) $(TEST_OBJ) $(RM_OUT)
 

@@ -85,6 +85,11 @@ class Tensor {
     Tensor square() const;
 
     /**
+     * Element-wise log operation (not in-place)
+     */
+    Tensor tensor_log() const;
+
+    /**
      * Returns a tensor of with the values clamped between some min and maximum;
      */
     Tensor clamp(double min = 0.0, double max = 1.0) const;
@@ -101,6 +106,13 @@ class Tensor {
      */
     static Tensor product(const Tensor& lhs, const Tensor& rhs);
     Tensor reduceSum() const;
+    Tensor reduceMean() const;
+
+    /**
+     * Softmax function
+     * Performs the operation on the lowest (rightmost) order dimension.
+     */
+    Tensor softMax() const;
     /**
      * Element-wise operations
      * These are in-place operations
@@ -113,14 +125,10 @@ class Tensor {
     int streamTensorValues(std::ostream& out, unsigned int rank, unsigned int index) const;
 };
 
-/**
- * NOTE: THESE FUNCTIONS ARE NOT THREAD SAVE
- * TODO: Make these functions thread safe
- */
-Tensor& operator+(const Tensor& lhs, const Tensor& rhs);
-Tensor& operator-(const Tensor& lhs, const Tensor& rhs);
-Tensor& operator*(const Tensor& lhs, const Tensor& rhs);
-Tensor& operator/(const Tensor& lhs, const Tensor& rhs);
+Tensor operator+(const Tensor& lhs, const Tensor& rhs);
+Tensor operator-(const Tensor& lhs, const Tensor& rhs);
+Tensor operator*(const Tensor& lhs, const Tensor& rhs);
+Tensor operator/(const Tensor& lhs, const Tensor& rhs);
 
 std::ostream& operator<<(std::ostream& out, const Tensor& data);
 

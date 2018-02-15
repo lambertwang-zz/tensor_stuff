@@ -4,3 +4,4 @@ tensor
 *.csv
 
 .vscode/*
+train-*
