@@ -10,7 +10,6 @@
 
 GraphNode::GraphNode(const TensorNode *n_node, GraphNode *n_root) {
     node = n_node;
-    // derivative = Tensor(0);
 
     if (n_root == NULL) {
         root = this;
@@ -91,8 +90,7 @@ void GraphNode::computeDerivatives(
 
 
     if (this == root) {
-        // droot/droot = 1
-        // TODO: If root shape is not [], then this is false
+        // droot/droot = [1]
         (*derivatives)[getTag()] = Tensor({ 1.0 }, { 1 });
     } else {
 #ifdef DEBUG
@@ -118,9 +116,8 @@ void GraphNode::computeDerivatives(
             /**
              * Sum all paths to parent from this node
              * compute sum of all:
-             *  d(root)/d(parent) * d(parent)/d(this)
-             * for each d(parent) of this node
-             * to produce d(root)/d(this)
+             *  d(root)/d(parent) * d(parent)/d(this) for each d(parent) of this node.
+             * That sum results in d(root)/d(this).
              * lhs must be a subtensor of rhs
              */
             if (!is_initialized) {

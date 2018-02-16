@@ -107,12 +107,12 @@ size_t beginMnistFile(std::ifstream *training_file, unsigned int *count) {
 Tensor readMnistImages(unsigned int max_images, unsigned int *p_img_size) {
     size_t file_size;
     unsigned int count = 0;
-    unsigned char *val;
+    char *val;
     int img_rows = 0;
     int img_cols = 0;
 
     // Training image file
-    std::ifstream tr_img_file("train-images-idx3-ubyte");
+    std::ifstream tr_img_file("train-images-idx3-ubyte", std::ios::binary);
     file_size = beginMnistFile(&tr_img_file, &count);
 
     std::cout << "Data size:   " << file_size << std::endl;
@@ -128,15 +128,16 @@ Tensor readMnistImages(unsigned int max_images, unsigned int *p_img_size) {
             img_size = img_rows * img_cols;
             std::cout << "Image Size: " << img_size << std::endl;
             img_tensor = Tensor({std::min(count, max_images), img_size});
-            val = (unsigned char *) std::malloc(img_size * sizeof(unsigned int));
+            val = (char *) std::malloc(img_size * sizeof(char));
         }
 
-        tr_img_file.seekg(16 + (8 + img_size) * i, std::ios::beg);
-        tr_img_file.read((char *) val, img_size);
+        tr_img_file.seekg(16 + (8 + img_size) * (i + 200), std::ios::beg);
+        tr_img_file.read(val, img_size);
         for (unsigned int j = 0; j < img_size; j++) {
-            img_tensor.setData(i * img_size + j, (double) val[j]);
+            img_tensor.setData(i * img_size + j, (unsigned char) val[j]);
         }
     }
+    free(val);
 
     tr_img_file.close();
     *p_img_size = img_size;
@@ -150,7 +151,7 @@ Tensor readMnistLabels(unsigned int max_images) {
     unsigned char val;
 
     // Training labels file
-    std::ifstream tr_label_file("train-labels-idx1-ubyte");
+    std::ifstream tr_label_file("train-labels-idx1-ubyte", std::ios::binary);
     file_size = beginMnistFile(&tr_label_file, &count);
 
     std::cout << "Data size:   " << file_size << std::endl;

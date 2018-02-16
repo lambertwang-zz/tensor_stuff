@@ -9,13 +9,15 @@
 #include "node/tensorNode.h"
 
 class Square: public TensorNode {
+    private:
+    const TensorNode *val;
     protected:
     std::string getDefaultTag();
     public:
     /**
      * Constructor for a Square
      */
-    Square(const TensorNode *val);
+    Square(const TensorNode *n_val);
 
     Tensor evaluate() const;
     Tensor evaluate(Session *session) const;

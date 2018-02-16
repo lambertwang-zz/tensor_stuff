@@ -8,7 +8,17 @@ std::string Variable::getDefaultTag() {
     return "variable_";
 }
 
+Variable::Variable(std::string n_tag) {
+    createTag(n_tag);
+    initial_value = Tensor();
+}
+
 Variable::Variable(const double init, std::string n_tag) {
+    createTag(n_tag);
+    initial_value = Tensor(init);
+}
+
+Variable::Variable(const Tensor init, std::string n_tag) {
     createTag(n_tag);
     initial_value = Tensor(init);
 }

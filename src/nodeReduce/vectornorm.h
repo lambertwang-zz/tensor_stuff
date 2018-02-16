@@ -1,25 +1,26 @@
 /**
- * ReduceSum Class Header
+ * Vector Norm Class Header
  * 
  */
 
-#ifndef __REDUCESUM_H__
-#define __REDUCESUM_H__
+#ifndef __VECTORNORM_H__
+#define __VECTORNORM_H__
 
 #include "node/tensorNode.h"
 
-class ReduceSum: public TensorNode {
+class VectorNorm: public TensorNode {
     private:
     const TensorNode *val;
+    unsigned int l;
     protected:
     std::string getDefaultTag();
     public:
     /**
-     * Constructor for a ReduceSum
-     * Sums all of the tensors in the first rank of the input.
-     * [1, 2, 3, 4] = 10
+     * Constructor for a Vector Norm
+     * The L exponent defaults to 2 for the magnitude of the vector.
+     * 
      */
-    ReduceSum(const TensorNode *n_val);
+    VectorNorm(const TensorNode *n_val, unsigned int n_l = 2);
 
     Tensor evaluate() const;
     Tensor evaluate(Session *session) const;

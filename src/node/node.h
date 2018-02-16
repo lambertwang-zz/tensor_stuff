@@ -12,14 +12,17 @@
 #include "placeholder.h"
 #include "variable.h"
 
-#include "nodeMath/add.h"
-#include "nodeMath/dotproduct.h"
-#include "nodeMath/matmult.h"
-#include "nodeMath/mult.h"
+#include "nodeMath/clamp.h"
 #include "nodeMath/softmax.h"
-#include "nodeMath/square.h"
-#include "nodeMath/subtract.h"
 #include "nodeMath/tensorlog.h"
+
+#include "nodeOperations/add.h"
+#include "nodeOperations/dotproduct.h"
+#include "nodeOperations/matmult.h"
+#include "nodeOperations/mult.h"
+#include "nodeOperations/square.h"
+#include "nodeOperations/subtract.h"
+
 
 #include "nodeReduce/reduceSum.h"
 #include "nodeReduce/reduceMean.h"

@@ -123,8 +123,12 @@ int main() {
     expect(Tensor({1, 3, 5, 7}, {4}).reduceMean(), "4");
     expectShape(Tensor({1, 3, 5, 7, 9, 11}, {2, 3}).reduceMean(), "2");
 
+    expect(Tensor({3, 4, 5, 7}, {2, 2}).vectorNorm(), "5, 8.60233");
+    expect(Tensor({1, 3, 5, 7}, {4}).vectorNorm(1), "16");
+
     std::cout << "\e[35mTesting softmax\e[0m" << std::endl;
     expect(Tensor({1, 1, 2, 2}, {2, 2}).softMax(), "0.5, 0.5, 0.5, 0.5");
+    expect(Tensor({1, 2, 3, 4, 5, 7}, {3, 2}).softMax(), "0.268941, 0.731059, 0.268941, 0.731059, 0.119203, 0.880797");
     expect(Tensor({1, 1, 1, 1}, {4}).softMax(), "0.25, 0.25, 0.25, 0.25");
 
     std::cout << "\e[35mTesting log\e[0m" << std::endl;

@@ -81,9 +81,7 @@ Tensor MatMult::derivative(const TensorNode *dx, Session *session) const {
                 }
             }
         }
-
         return derivative;
-    } else {
-        return Tensor(0);
     }
+    throw std::invalid_argument("TensorNode '" + dx->getTag() + "' is not a valid input for Node '" + getTag() + "'");
 }

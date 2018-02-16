@@ -80,7 +80,6 @@ Tensor Mult::derivative(const TensorNode *dx, Session *session) const {
         }
 
         Tensor derivative = Tensor(d_shape);
-        // std::cout << "Deriv : " << derivative << std::endl;
         derivative.setAllData(0);
         unsigned int count = input_eval.getDataCount();
         unsigned int out_count = output.getDataCount();
@@ -90,9 +89,8 @@ Tensor Mult::derivative(const TensorNode *dx, Session *session) const {
             }
         }
         return derivative;
-    } else {
-        return Tensor(0);
     }
+    throw std::invalid_argument("TensorNode '" + dx->getTag() + "' is not a valid input for Node '" + getTag() + "'");
 }
 
 Mult *operator*(const TensorNode &lhs, const TensorNode& rhs) {

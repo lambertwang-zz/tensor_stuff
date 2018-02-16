@@ -74,7 +74,7 @@ Tensor Add::derivative(const TensorNode *dx, Session *session) const {
             return derivative;
         }
     }
-    return Tensor(0);
+    throw std::invalid_argument("TensorNode '" + dx->getTag() + "' is not a valid input for Node '" + getTag() + "'");
 }
 
 Add *operator+(const TensorNode& lhs, const TensorNode& rhs) {

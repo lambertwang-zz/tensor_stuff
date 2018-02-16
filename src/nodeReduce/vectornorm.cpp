@@ -1,28 +1,29 @@
 /**
- * ReduceSum class
+ * VectorNorm class
  */
 
-#include "reduceSum.h"
+#include "vectornorm.h"
 
-std::string ReduceSum::getDefaultTag() {
-    return "reducesum_";
+std::string VectorNorm::getDefaultTag() {
+    return "vectornorm_";
 }
 
-ReduceSum::ReduceSum(const TensorNode *n_val) {
+VectorNorm::VectorNorm(const TensorNode *n_val, unsigned int n_l) {
     createTag();
     val = n_val;
+    l = n_l;
     input.push_back(n_val);
 }
 
-Tensor ReduceSum::evaluate() const {
-    return val->evaluate().reduceSum();
+Tensor VectorNorm::evaluate() const {
+    return val->evaluate().vectorNorm(l);
 }
 
-Tensor ReduceSum::evaluate(Session *session) const {
-    return session->getEval(val).reduceSum();
+Tensor VectorNorm::evaluate(Session *session) const {
+    return session->getEval(val).vectorNorm(l);
 }
 
-Tensor ReduceSum::derivative(const TensorNode *dx, Session *session) const {
+Tensor VectorNorm::derivative(const TensorNode *dx, Session *session) const {
     (void)session;
     if (val->getTag().compare(dx->getTag()) == 0) {
         Tensor input = session->getEval(val);
@@ -50,12 +51,14 @@ Tensor ReduceSum::derivative(const TensorNode *dx, Session *session) const {
         for (unsigned int i = 0; i < subtensor_count; i++) {
             unsigned int deriv_index = i * (input_shape[input.getRank() - 1] + input.getDataCount());
             for (unsigned int j = 0; j < input_shape[input.getRank() - 1]; j++) {
+                // TODO: Implement this
                 derivative.setData(j + deriv_index, 1);
             }
         }
 
         return derivative;
     }
-    throw std::invalid_argument("TensorNode '" + dx->getTag() + "' is not a valid input for Node '" + getTag() + "'");
+    return Tensor(0);
 }
+
 

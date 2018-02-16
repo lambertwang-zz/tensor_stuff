@@ -8,12 +8,13 @@ Session::Session() {
 }
 
 void Session::initialize(TensorNode *node) {
-    // std::cout << "Initializing session" << std::endl;
     is_initialized = true;
     variable_store.clear();
 
-    // Initializes the session by adding all of the variables to the variable store
-    // Initializes the nodes using a depth-first search on the node inputs
+    /**
+     * Initializes the session by adding all of the variables to the variable store
+     * Initializes the nodes using a depth-first search on the node inputs
+     */
     std::list<std::string> initialized;
     std::list<const TensorNode *> queue;
 
@@ -27,7 +28,6 @@ void Session::initialize(TensorNode *node) {
         queue.pop_back();
 
         current->initialize(this);
-        // std::cout << "Initializing node with tag " << current->getTag() << std::endl;
 
         for (const TensorNode *n: current->getInput()) {
             // Check if element was not already added to queue

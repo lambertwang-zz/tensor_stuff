@@ -1,6 +1,6 @@
 #include "session/session.h"
 #include "optimizer/gradientDescentOptimizer.h"
-#include "lib/testlib.h"
+#include "../test/lib/testlib.h"
 
 // Library
 #include <iostream>
@@ -8,44 +8,64 @@
 
 #include <ctime>
 
-#define TRAINING_COUNT 3
+#define ITERATIONS 10
+#define TRAINING_COUNT 100
+#define CLASSES 10
 
 int main() {
-    unsigned int img_size;
-
-    Tensor x_data = readMnistImages(TRAINING_COUNT, &img_size);
+    unsigned int image_size = 4;
+    Tensor x_data = readMnistImages(TRAINING_COUNT, &image_size);
     Tensor y_data = readMnistLabels(TRAINING_COUNT);
 
+    // Setup placeholders and variables
     Placeholder *x = new Placeholder("x");
     Placeholder *y_ = new Placeholder("y");
-    Variable *w = new Variable({img_size, 10});
-    Variable *b = new Variable({10});
+    Tensor w_init = Tensor({image_size, CLASSES});
+    w_init.setAllData(0.001);
+    Variable *w = new Variable(w_init, "w");
+    Variable *b = new Variable({CLASSES}, "b");
+
+    // Create the linear model
     SoftMax *y = new SoftMax(*(new MatMult(x, w)) + *b);
 
-    // ReduceSum *loss = new ReduceSum(new Square(*y_ - *y));
-    ReduceMean *loss = new ReduceMean(new ReduceSum(*(*y_ * *(new TensorLog(y))) * *(new Constant(-1))));
+    // Create the loss function
+    ReduceMean *loss = new ReduceMean(
+        *(new ReduceSum(
+            *new DotProduct({ y_, new TensorLog(y) }) * 
+            *(new Constant(-1))
+            )
+        ) +
+        *(*(*(new ReduceSum(new ReduceSum(w))) * 
+            *(new Constant(0.01))
+            ) +
+          *(*(new ReduceSum(b)) *
+            *(new Constant(0.01))
+            ))
+        );
 
     std::map<std::string, Tensor> placeholders;
     placeholders["x"] = x_data;
     placeholders["y"] = y_data;
 
     Session session = Session();
-    // expect(session.run(y, placeholders), "105");
-    // std::cout << session.run(y, placeholders) << std::endl;
-    // std::cout << session.run(loss, placeholders) << std::endl;
-    /*
-    sess1.initialize(linear_model);
-    expect(sess1.run(linear_model, placeholder3), "0, 0.3, 0.6, 0.9");
-    // Add *linear_model = *(*new Placeholder("x") * *new Variable(-1, "w")) + *new Variable(1, "b");
-    Placeholder *y = new Placeholder("y");
-    // expect(sess1.run(*linear_model - *y, placeholder3), "0, 0.3, 0.6, 0.9");
-    ReduceSum *loss = new ReduceSum(new Square(*linear_model - *y));
-
-    sess1.initialize(loss);
-    expect(sess1.run(loss, placeholder3), "23.66");
-
-    std::cout << "\e[35mTesting Gradient Descent Optimizer\e[0m" << std::endl;
-    */
-
+    // Create the optimizer and training node
+    GradientDescentOptimizer optimizer = GradientDescentOptimizer(Tensor(0.0001));
+    TensorNode *minimizer = optimizer.minimize(loss);
+    // std::cout << "Initial model: " << session.run(y, placeholders) << std::endl;
+    std::cout << "Initial Loss : " << session.run(loss, placeholders) << std::endl;
+    std::clock_t start = std::clock();
+    for (int i = 0; i < ITERATIONS; i++) {
+        if (i % (ITERATIONS / 10) == 0) {
+            std::cout << "Loss after training iteration #" << i << " : " << session.run(minimizer, placeholders) << std::endl;
+            // std::cout << "matMult x: " << session.run(new MatMult(x, w), placeholders) << std::endl;
+            // std::cout << "Model: " << session.run(y, placeholders) << std::endl;
+        } else {
+            // session.run(minimizer, placeholders);
+        }
+    }
+    std::cout << "Time Elapsed: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+    // std::cout << "Final model: " << session.run(y, placeholders) << std::endl;
+    // std::cout << "Classifier : " << session.run(w, placeholders) << std::endl;
+    std::cout << "Final Loss : " << session.run(loss, placeholders) << std::endl;
     return 0;
 }

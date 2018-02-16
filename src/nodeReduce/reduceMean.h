@@ -9,6 +9,8 @@
 #include "node/tensorNode.h"
 
 class ReduceMean: public TensorNode {
+    private:
+    const TensorNode *val;
     protected:
     std::string getDefaultTag();
     public:
@@ -17,7 +19,7 @@ class ReduceMean: public TensorNode {
      * Sums all of the tensors in the first rank of the input.
      * [1, 2, 3, 4] = 2.5
      */
-    ReduceMean(const TensorNode *val);
+    ReduceMean(const TensorNode *n_val);
 
     Tensor evaluate() const;
     Tensor evaluate(Session *session) const;
