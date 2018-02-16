@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TAB_SPACING "  "
+
 Tensor::Tensor() {
     rank = 0;
     data_count = 0;
@@ -175,13 +177,28 @@ int Tensor::streamTensorValues(std::ostream& out, unsigned int rank, unsigned in
     for (unsigned int i = rank + 1; i < this->rank; i++) {
         rank_count *= shape[i];
     }
-    out << "[";
+    out << std::endl;
+    for (unsigned int i = 0; i < rank; i++) {
+        out << TAB_SPACING;
+    }
+    out << " [ ";
+    if (rank < this->rank - 1) {
+        for (unsigned int i = 0; i < rank + 1; i++) {
+            out << TAB_SPACING;
+        }
+    }
     streamTensorValues(out, rank + 1, index);
     for (unsigned int i = 1; i < shape[rank]; i++) {
         out << ", ";
         streamTensorValues(out, rank + 1, index + i * rank_count);
     }
-    out << "]";
+    if (rank < this->rank - 1) {
+        out << std::endl;
+        for (unsigned int i = 0; i < rank; i++) {
+            out << TAB_SPACING;
+        }
+    }
+    out << " ]";
     return 0;
 }
 

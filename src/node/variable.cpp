@@ -23,6 +23,11 @@ Variable::Variable(const std::initializer_list<unsigned int>& shape, std::string
     initial_value = Tensor(shape);
 }
 
+Variable::Variable(const std::initializer_list<double>& data, const std::initializer_list<unsigned int>& shape, std::string n_tag) {
+    createTag(n_tag);
+    initial_value = Tensor(data, shape);
+}
+
 Tensor Variable::evaluate() const {
     return initial_value;
 }

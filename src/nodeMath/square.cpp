@@ -42,6 +42,11 @@ Tensor Square::derivative(const TensorNode *dx, Session *session) const {
                 d_shape.begin(), 
                 d_shape.end());
 
+            // Ensure constant derivatives always have shape [1]
+            if (d_shape.size() < 1) {
+                d_shape.push_back(1);
+            }
+
             Tensor derivative = Tensor(d_shape);
             derivative.setAllData(0);
             unsigned int count = input_eval.getDataCount();

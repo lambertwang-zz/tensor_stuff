@@ -41,6 +41,7 @@ Tensor SoftMax::derivative(const TensorNode *dx, Session *session) const {
             Tensor derivative = Tensor(d_shape);
             derivative.setAllData(0);
             unsigned int count = input_eval.getDataCount();
+            // std::cout << "Softmax input : " << input_eval << std::endl;
             for (unsigned int i = 0; i < count; i++) {
                 // TODO: Implement this
                 derivative.setData(i + i * count, input_eval.getData(i) * 2);

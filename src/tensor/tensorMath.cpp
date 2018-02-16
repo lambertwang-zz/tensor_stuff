@@ -4,6 +4,8 @@
 
 #include "tensor.h"
 
+#include "tensoralgebra.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -53,6 +55,60 @@ Tensor Tensor::crossProduct(const Tensor& lhs, const Tensor& rhs) {
 Tensor Tensor::product(const Tensor& lhs, const Tensor& rhs) {
     (void)lhs; (void)rhs;
     return Tensor();
+}
+
+/**
+ * Perform component-wise multiplcation on higher order derivations of tensors.
+ */
+Tensor Tensor::derivMult(const Tensor& lhs, const Tensor &rhs) {
+#ifdef DEBUG
+    std::cout << "Starting deriv mult" << std::endl;
+    std::cout << "lhs : " << lhs << std::endl;
+    std::cout << "rhs : " << rhs << std::endl;
+#endif
+    if (rhs.rank < lhs.rank) {
+        std::cout << "lhs : " << lhs << std::endl;
+        std::cout << "rhs : " << rhs << std::endl;
+        throw std::invalid_argument("TensorMath::derivMult(): rhs rank must be at least lhs rank.");
+    }
+
+    if (lhs.rank == 1 && lhs.shape[0] == 1) {
+        // Perform scalar mult
+        Tensor result = Tensor(rhs);
+        result *= lhs;
+        return result;
+    }
+
+    for (unsigned int i = 0; i < lhs.rank; i++) {
+        if (lhs.shape[i] != rhs.shape[i]) {
+            // TODO: Define whatever this means
+            std::cout << "lhs : " << lhs << std::endl;
+            std::cout << "rhs : " << rhs << std::endl;
+            throw std::invalid_argument("TensorMath::derivMult(): lhs shape must be higher-order subtensor of rhs.");
+        }
+    }
+    unsigned int subtensor_count = 1;
+    for (unsigned int i = lhs.rank; i < rhs.rank; i++) {
+        subtensor_count *= rhs.shape[i];
+    }
+
+    Tensor val = Tensor(std::vector<unsigned int>(rhs.shape.begin() + lhs.rank, rhs.shape.end()));
+    // std::cout << "lhs data_count : " << lhs.data_count << std::endl;
+    // std::cout << "rhs data_count : " << rhs.data_count << std::endl;
+    // std::cout << "val data_count : " << val.data_count << std::endl;
+    for (unsigned int i = 0; i < subtensor_count; i++) {
+        // std::cout << "val index : " << i << std::endl;
+        for (unsigned int j = 0; j < lhs.data_count; j++) {
+            // std::cout << "lhs index : " << j << std::endl;
+            // std::cout << "rhs index : " << (j * subtensor_count + i) << std::endl;
+
+            val.data[i] += lhs.data[j] * rhs.data[j * subtensor_count + i];
+        }
+    }
+#ifdef DEBUG
+    std::cout << "Computed value : " << val << std::endl;
+#endif
+    return val; 
 }
 
 Tensor Tensor::reduceSum() const {
@@ -189,6 +245,7 @@ Tensor& Tensor::operator-=(const Tensor& rhs) {
  * [2] * [[1], [2]] = error (not supported)
  * 
  * TODO: Improve performance
+ * TODO: Subtensor multiplication
  */
 Tensor& Tensor::operator*=(const Tensor& rhs) {
     // Check if lhs and rhs are scalars, do simple Scalar multiplication
@@ -205,11 +262,16 @@ Tensor& Tensor::operator*=(const Tensor& rhs) {
         rhs_x = rhs.rank == 2 ? rhs.shape[1] : 1,
         rhs_y = rhs.rank >= 1 ? rhs.shape[0] : 1;
 
+    // std::cout << "lhs_x : " << lhs_x << std::endl;
+    // std::cout << "lhs_y : " << lhs_y << std::endl;
+    // std::cout << "rhs_x : " << rhs_x << std::endl;
+    // std::cout << "rhs_y : " << rhs_y << std::endl;
+
     // Shape is correct, do matrix multiplication
     if (lhs_x == rhs_y) {
         Tensor result;
         // Setup the shape of the result tensor
-        if (rhs_x == 1) {
+        if (rhs.rank < 2) {
             if (lhs_y == 1) {
                 result = Tensor(0);
             } else {
@@ -219,12 +281,14 @@ Tensor& Tensor::operator*=(const Tensor& rhs) {
             result = Tensor({lhs_y, rhs_x});
         }
 
-        for (unsigned int i = 0; i < rhs_x; i++) {
-            for (unsigned int j = 0; j < lhs_y; j++) {
-                for (unsigned int k = 0; k < rhs_y; k++) {
-                    result.data[j + i * lhs_y] += 
-                        data[j + k * lhs_y] *
-                        rhs.data[k + i * rhs_y];
+        for (unsigned int j = 0; j < lhs_y; j++) {
+            for (unsigned int i = 0; i < rhs_x; i++) {
+                // std::cout << "Result Index: x = " << i << ", y = " << j << std::endl;
+                for (unsigned int k = 0; k < lhs_x; k++) {
+                    // std::cout << "Multiplying " << data[k + i * lhs_x] << " and " << rhs.data[j + k * rhs_x] << std::endl;
+                    result.data[i + j * rhs_x] += 
+                        data[k + j * lhs_x] *
+                        rhs.data[i + k * rhs_x];
                 }
             }
         }
@@ -278,23 +342,23 @@ Tensor& Tensor::operator/=(const Tensor& rhs) {
 Tensor operator+(const Tensor& lhs, const Tensor& rhs) {
     Tensor output(lhs);
     output += rhs;
-    return output;
+    return Tensor(output);
 }
 
 Tensor operator-(const Tensor& lhs, const Tensor& rhs) {
     Tensor output(lhs);
     output -= rhs;
-    return output;
+    return Tensor(output);
 }
 
 Tensor operator*(const Tensor& lhs, const Tensor& rhs) {
     Tensor output(lhs);
     output *= rhs;
-    return output;
+    return Tensor(output);
 }
 
 Tensor operator/(const Tensor& lhs, const Tensor& rhs) {
     Tensor output(lhs);
     output /= rhs;
-    return output;
+    return Tensor(output);
 }

@@ -69,9 +69,43 @@ int main() {
 
     std::cout << "\e[35mTesting matrix multiplications\e[0m" << std::endl;
     expect(Tensor({1, 3, 5, 7}, {2, 2}) * Tensor(-1), "-1, -3, -5, -7");
-    expect(Tensor({1, 3, 5, 7}, {2, 2}) * Tensor({2, 4, 6, 8}, {2, 2}), "22, 34, 46, 74");
-    expect(Tensor({4, 5, 6, 7, 8, 9, 10, 11, 12}, {3, 3}) * Tensor({1, 2, 3}, {3, 1}), "48, 54, 60");
+    expect(Tensor({1, 3, 5, 7}, {2, 2}) * Tensor({2, 4, 6, 8}, {2, 2}), "20, 28, 52, 76");
+    expect(
+        Tensor({
+            4, 5, 6,
+            7, 8, 9,
+            10, 11, 12
+            }, {3, 3}) *
+        Tensor({
+            1,
+            2,
+            3
+        }, {3, 1}), "32, 50, 68");
     expectShape(Tensor({4, 5, 6, 7, 8, 9}, {2, 3}) * Tensor({1, 2, 3}, {3, 1}), "2, 1");
+    expect(
+        Tensor({
+            1, 2, 3, 10,
+            10, 3, 2, 1,
+            1, 2, 10, 3,
+            }, {3, 4}) *
+        Tensor({
+            0, 1, 0,
+            0, 0, 0,
+            0, 0, 1,
+            1, 0, 0,
+            }, {4, 3}), "10, 1, 3, 1, 10, 2, 3, 1, 10");
+    expectShape(
+        Tensor({
+            1, 2, 3, 10,
+            10, 3, 2, 1,
+            1, 2, 10, 3,
+        }, {3, 4}) *
+        Tensor({
+            0, 1, 0,
+            0, 0, 0,
+            0, 0, 1,
+            1, 0, 0,
+        }, {4, 3}), "3, 3");
 
     std::cout << "\e[35mTesting submatrix addition\e[0m" << std::endl;
     expect(Tensor({
@@ -88,6 +122,17 @@ int main() {
     expect(Tensor({1, 3, 5, 7}, {2, 2}).reduceMean(), "2, 6");
     expect(Tensor({1, 3, 5, 7}, {4}).reduceMean(), "4");
     expectShape(Tensor({1, 3, 5, 7, 9, 11}, {2, 3}).reduceMean(), "2");
+
+    std::cout << "\e[35mTesting softmax\e[0m" << std::endl;
+    expect(Tensor({1, 1, 2, 2}, {2, 2}).softMax(), "0.5, 0.5, 0.5, 0.5");
+    expect(Tensor({1, 1, 1, 1}, {4}).softMax(), "0.25, 0.25, 0.25, 0.25");
+
+    std::cout << "\e[35mTesting log\e[0m" << std::endl;
+    expect(Tensor({-1, 0, .5, 1, 2, 3}, {6}).tensor_log(), "nan, -inf, -0.693147, 0, 0.693147, 1.09861");
+
+    std::cout << "\e[35mTesting dotproduct\e[0m" << std::endl;
+    expect(Tensor::dotProduct(Tensor({1, 2, 3, 4}, {2, 2}), Tensor({5, 6, 7, 8}, {2, 2})),
+        "5, 12, 21, 32");
 
     printTestResults();
 

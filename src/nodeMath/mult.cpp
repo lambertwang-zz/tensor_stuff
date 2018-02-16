@@ -74,7 +74,13 @@ Tensor Mult::derivative(const TensorNode *dx, Session *session) const {
             output_shape.begin(), 
             output_shape.end());
 
+        // Ensure constant derivatives always have shape [1]
+        if (d_shape.size() < 1) {
+            d_shape.push_back(1);
+        }
+
         Tensor derivative = Tensor(d_shape);
+        // std::cout << "Deriv : " << derivative << std::endl;
         derivative.setAllData(0);
         unsigned int count = input_eval.getDataCount();
         unsigned int out_count = output.getDataCount();

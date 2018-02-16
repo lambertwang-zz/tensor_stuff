@@ -39,7 +39,6 @@ TEST_OBJ = test/lib/testlib.o
 TEST_EXE = $(TEST:$(EXT)=)
 
 all: clear clean_exe $(MAIN_NAME)
-	echo $(TEST_EXE)
 
 $(MAIN_NAME): $(SRC_OBJ)
 	$(CC) $(SRC_LOC)$(MAIN_NAME)$(EXT) -o $(EXECUTABLE) $(SRC_OBJ) $(LINK)

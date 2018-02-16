@@ -40,7 +40,7 @@ Tensor ReduceMean::derivative(const TensorNode *dx, Session *session) const {
                 input_shape.end());
 
             Tensor derivative = Tensor(d_shape);
-            derivative.setAllData(1 / input_shape[input_eval.getRank() - 1]);
+            derivative.setAllData(1.0 / input_shape[input_eval.getRank() - 1]);
 
             return derivative;
         }

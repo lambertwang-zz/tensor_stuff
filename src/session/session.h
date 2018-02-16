@@ -36,6 +36,7 @@ class Session {
 
     unsigned int run_count;
     Tensor prev_result;
+
     public:
     /**
      * Constructor for a Session

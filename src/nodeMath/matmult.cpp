@@ -28,42 +28,60 @@ Tensor MatMult::evaluate(Session *session) const {
  * TODO: See Add::derivative():
  */
 Tensor MatMult::derivative(const TensorNode *dx, Session *session) const {
-    Tensor output;
-    bool is_initialized = false;
+    Tensor output = session->getEval(this);
     bool is_input = false;
-    for (const TensorNode *n: input) {
-        if (dx->getTag().compare(n->getTag())) {
-            if (!is_initialized) {
-                is_initialized = true;
-                output = Tensor(session->getEval(n));
-            } else {
-                output *= session->getEval(n);
-            }
-        } else {
-            is_input = true;
-        }
+    // True if is lhs, false if is rhs
+    bool is_lhs = false;
+    if (!dx->getTag().compare(lhs->getTag())) {
+        is_input = true;
+        is_lhs = true;
+    } else if (!dx->getTag().compare(rhs->getTag())) {
+        is_input = true;
     }
 
     if (is_input) {
-        Tensor input_eval = session->getEval(dx);
-        std::vector<unsigned int> d_shape = input_eval.getShape(),
-            output_shape = output.getShape();
-        d_shape.insert(d_shape.end(), 
-            d_shape.begin(), 
-            d_shape.end());
-        d_shape.insert(d_shape.end(), 
-            output_shape.begin(), 
-            output_shape.end());
+        Tensor t_lhs = session->getEval(lhs),
+            t_rhs = session->getEval(rhs);
+        std::vector<unsigned int> lhs_shape = t_lhs.getShape(),
+            rhs_shape = t_rhs.getShape(),
+            d_shape = output.getShape();
 
+        unsigned int out_x = output.getRank() > 1 ? d_shape[1] : 1,
+            out_y = output.getRank() > 0 ? d_shape[0] : 1,
+            lhs_x = t_lhs.getRank() > 1 ? t_lhs.getShape()[1] : 1; // == rhs_y
+
+        /**
+         * For each row and column in the output matrix,
+         * calculate the coefficients to produce the matrix from the other factor
+         */
+        if (is_lhs) {
+            d_shape.insert(d_shape.end(),
+                lhs_shape.begin(), 
+                lhs_shape.end());
+        } else {
+            d_shape.insert(d_shape.end(),
+                rhs_shape.begin(), 
+                rhs_shape.end());
+        }
         Tensor derivative = Tensor(d_shape);
         derivative.setAllData(0);
-        unsigned int count = input_eval.getDataCount();
-        unsigned int out_count = output.getDataCount();
-        for (unsigned int i = 0; i < count; i++) {
-            for (unsigned int j = 0; j < out_count; j++) {
-                derivative.setData(j + out_count * (i + i * count), output.getData(j));
+
+        for (unsigned int i = 0; i < out_y; i++) {
+            for (unsigned int j = 0; j < out_x; j++) {
+                for (unsigned int k = 0; k < lhs_x; k++) {
+                    if (is_lhs) {
+                        derivative.setData(
+                            (j + i * out_x) * t_lhs.getDataCount()
+                            + i * lhs_x + k, t_rhs.getData(j + k * out_x));
+                    } else {
+                        derivative.setData(
+                            (j + i * out_x) * t_rhs.getDataCount()
+                            + j + k * out_x, t_lhs.getData(k + i * lhs_x));
+                    }
+                }
             }
         }
+
         return derivative;
     } else {
         return Tensor(0);

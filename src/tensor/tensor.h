@@ -105,6 +105,7 @@ class Tensor {
      * Matrix product of two rank 2 tensors with identical shapes
      */
     static Tensor product(const Tensor& lhs, const Tensor& rhs);
+    static Tensor derivMult(const Tensor& lhs, const Tensor &rhs);
     Tensor reduceSum() const;
     Tensor reduceMean() const;
 

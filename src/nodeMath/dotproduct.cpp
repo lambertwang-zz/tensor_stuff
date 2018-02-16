@@ -45,6 +45,7 @@ Tensor DotProduct::evaluate(Session *session) const {
 
 /**
  * TODO: See Add::derivative():
+ * Tensors must have identical shapes
  */
 Tensor DotProduct::derivative(const TensorNode *dx, Session *session) const {
     Tensor output;
@@ -64,24 +65,16 @@ Tensor DotProduct::derivative(const TensorNode *dx, Session *session) const {
     }
 
     if (is_input) {
-        Tensor input_eval = session->getEval(dx);
-        std::vector<unsigned int> d_shape = input_eval.getShape(),
-            output_shape = output.getShape();
+        std::vector<unsigned int> d_shape = output.getShape();
         d_shape.insert(d_shape.end(), 
             d_shape.begin(), 
             d_shape.end());
-        d_shape.insert(d_shape.end(), 
-            output_shape.begin(), 
-            output_shape.end());
 
         Tensor derivative = Tensor(d_shape);
         derivative.setAllData(0);
-        unsigned int count = input_eval.getDataCount();
-        unsigned int out_count = output.getDataCount();
+        unsigned int count = output.getDataCount();
         for (unsigned int i = 0; i < count; i++) {
-            for (unsigned int j = 0; j < out_count; j++) {
-                derivative.setData(j + out_count * (i + i * count), output.getData(j));
-            }
+            derivative.setData(i * (1 + count), output.getData(i));
         }
         return derivative;
     } else {
