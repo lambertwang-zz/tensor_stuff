@@ -4,6 +4,7 @@
 
 // Library
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 #include <ctime>
@@ -65,7 +66,10 @@ int main() {
     }
     std::cout << "Time Elapsed: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
     // std::cout << "Final model: " << session.run(y, placeholders) << std::endl;
-    // std::cout << "Classifier : " << session.run(w, placeholders) << std::endl;
+    std::ofstream file;
+    file.open("classifier.txt");
+    file << "Classifier : " << session.run(w, placeholders) << std::endl;
+    file.close();
     std::cout << "Final Loss : " << session.run(loss, placeholders) << std::endl;
     return 0;
 }
