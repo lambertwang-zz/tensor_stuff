@@ -1,5 +1,4 @@
 #include "session/session.h"
-#include "optimizer/gradientDescentOptimizer.h"
 #include "lib/testlib.h"
 
 // Library

@@ -6,10 +6,9 @@
 
 #include "tensoralgebra.h"
 
-Train::Train(const Optimizer *n_opt, const TensorNode *val, Tensor n_learning_rate) {
+Train::Train(const TensorNode *val, Tensor n_learning_rate) {
     input.push_back(val);
 
-    optimizer = n_opt;
     graph = new GraphNode(val);
     learning_rate = n_learning_rate;
 }

@@ -1,5 +1,4 @@
 #include "session/session.h"
-#include "optimizer/gradientDescentOptimizer.h"
 #include "../test/lib/testlib.h"
 
 // Library
@@ -50,8 +49,7 @@ int main() {
 
     Session session = Session();
     // Create the optimizer and training node
-    GradientDescentOptimizer optimizer = GradientDescentOptimizer(Tensor(0.0001));
-    TensorNode *minimizer = optimizer.minimize(loss);
+    TensorNode *minimizer = new Train(loss, 0.0001);
     // std::cout << "Initial model: " << session.run(y, placeholders) << std::endl;
     std::cout << "Initial Loss : " << session.run(loss, placeholders) << std::endl;
     std::clock_t start = std::clock();

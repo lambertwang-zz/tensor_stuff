@@ -1,5 +1,4 @@
 #include "session/session.h"
-#include "optimizer/gradientDescentOptimizer.h"
 #include "lib/testlib.h"
 
 // Library
@@ -58,8 +57,7 @@ void gradientDescent(
     std::cout << "\e[35mTesting Gradient Descent Optimizer\e[0m" << std::endl;
 
     Session session = Session();
-    GradientDescentOptimizer optimizer = GradientDescentOptimizer(Tensor(learning_rate));
-    TensorNode *train = optimizer.minimize(loss);
+    TensorNode *train = new Train(loss, learning_rate);
     session.initialize(train);
     std::clock_t start = std::clock();
     /*
@@ -95,9 +93,8 @@ int main() {
 
     std::cout << "\e[35mTesting Calculator Abilities\e[0m" << std::endl;
 
-    GradientDescentOptimizer optimizer_4 = GradientDescentOptimizer(Tensor(.5));
     Session sess_4 = Session();
-    TensorNode *train_4 = optimizer_4.minimize(
+    TensorNode *train_4 = new Train(
         new Square(
             new Subtract({
                 new Mult({
@@ -107,7 +104,7 @@ int main() {
                 new Variable(0, "x")
                 })
             )
-        );
+        , 0.5);
     sess_4.run(train_4);
     expect(sess_4.getVarTag("x"), "9");
 
