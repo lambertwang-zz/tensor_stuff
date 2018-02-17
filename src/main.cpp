@@ -46,19 +46,18 @@ int main() {
     SoftMax *y = new SoftMax(*(new MatMult(x, w)) + *b);
 
     // Create the loss function
-    ReduceMean *loss = new ReduceMean(
-        *(new ReduceSum(
-            *new DotProduct({ y_, new TensorLog(y) }) * 
-            *(new Constant(-1))
-            )
-        ) +
-        *(*(*(new ReduceSum(new ReduceSum(w))) * 
-            *(new Constant(0.01))
+    TensorNode *loss = new ReduceMean(new ReduceSum(
+        *new DotProduct({ y_, new TensorLog(y) }) * 
+        *new Constant(-1)
+        ));
+    TensorNode *train_error = 
+        *loss +
+        *(*(*new ReduceSum(new VectorNorm(w, 1)) * 
+            *new Constant(0.01)
             ) +
-          *(*(new ReduceSum(b)) *
-            *(new Constant(0.01))
-            ))
-        );
+          *(*new ReduceSum(b) *
+            *new Constant(0.01)
+            ));
 
     std::map<std::string, Tensor> placeholders;
     placeholders["x"] = x_data;
@@ -66,7 +65,7 @@ int main() {
 
     Session session = Session();
     // Create the optimizer and training node
-    TensorNode *minimizer = new Train(loss, 0.01);
+    TensorNode *minimizer = new Train(train_error, 0.05);
     std::cout << "Initial model: " << session.run(y, placeholders) << std::endl;
     std::cout << "Initial Loss : " << session.run(loss, placeholders) << std::endl;
     std::clock_t start = std::clock();

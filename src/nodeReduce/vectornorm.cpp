@@ -52,7 +52,12 @@ Tensor VectorNorm::derivative(const TensorNode *dx, Session *session) const {
             unsigned int deriv_index = i * (input_shape[input.getRank() - 1] + input.getDataCount());
             for (unsigned int j = 0; j < input_shape[input.getRank() - 1]; j++) {
                 // TODO: Implement this
-                derivative.setData(j + deriv_index, 1);
+                // Currently implemented for l1 norm
+                if (input.getData(i * input_shape[input.getRank() - 1] + j) >= 1.0) {
+                    derivative.setData(j + deriv_index, 1);
+                } else {
+                    derivative.setData(j + deriv_index, -1);
+                }
             }
         }
 

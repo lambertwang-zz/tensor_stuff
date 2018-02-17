@@ -26,6 +26,7 @@
 
 #include "nodeReduce/reduceSum.h"
 #include "nodeReduce/reduceMean.h"
+#include "nodeReduce/vectornorm.h"
 
 #include "trainNode/train.h"
 
